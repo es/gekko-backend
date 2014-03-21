@@ -42,7 +42,7 @@ pg.connect(conObj, function(err, client, done) {
         cb(null, item.date_field.toISOString().substring(0, 10));
       }, function (error, dates) {
         if(err) return console.error('error mapping dates', error);
-        res.send(dates);
+        res.jsonp(dates);
       });
     });
   });
@@ -57,7 +57,7 @@ pg.connect(conObj, function(err, client, done) {
         cb(null, item);
       }, function (error, finalArr) {
         if(err) return console.error('error mapping dates', error);
-        res.send(finalArr);
+        res.jsonp(finalArr);
       });
     });
   });
@@ -67,7 +67,7 @@ pg.connect(conObj, function(err, client, done) {
     client.query('SELECT sector, sub_sector FROM sub_sector_to_sector_map', function(err, result) {
       done();
       if(err) return console.error('error running query', err);      
-      res.send(result.rows);
+      res.jsonp(result.rows);
     });
   });
 });  
