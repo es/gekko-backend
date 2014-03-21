@@ -31,10 +31,11 @@ var conObj = {
   host: 'localhost'
 };
 
-pg.connect(conObj, function(err, client, done) {
-  if(err) return console.error('error fetching client from pool', err);
+
   // arr of dates
-  app.get('/dates', function (req, res) {
+app.get('/dates', function (req, res) {
+  pg.connect(conObj, function(pgErr, client, done) {
+    if(pgErr) return console.error('error fetching client from pool', pgErr);
     client.query('SELECT DISTINCT date_field FROM weights', function(err, result) {
       done();
       if(err) return console.error('error running query', err);
@@ -42,13 +43,16 @@ pg.connect(conObj, function(err, client, done) {
         cb(null, item.date_field.toISOString().substring(0, 10));
       }, function (error, dates) {
         if(err) return console.error('error mapping dates', error);
-        res.jsonp(dates);
+        res.send(dates);
       });
     });
   });
+});
 
   // weights for each subsector on sepcific date
-  app.get('/weights/:date', function (req, res) {
+app.get('/weights/:date', function (req, res) {
+  pg.connect(conObj, function(pgErr, client, done) {
+    if(pgErr) return console.error('error fetching client from pool', pgErr);
     client.query('SELECT date_field, sub_sector, weight FROM weights WHERE date_field=$1', [req.params.date], function(err, result) {
       done();
       if(err) return console.error('error running query', err);
@@ -57,17 +61,20 @@ pg.connect(conObj, function(err, client, done) {
         cb(null, item);
       }, function (error, finalArr) {
         if(err) return console.error('error mapping dates', error);
-        res.jsonp(finalArr);
+        res.send(finalArr);
       });
     });
   });
+});
 
-  // map of subsector to sectors
-  app.get('/map', function (req, res) {
+// map of subsector to sectors
+app.get('/map', function (req, res) {
+  pg.connect(conObj, function(pgErr, client, done) {
+    if(pgErr) return console.error('error fetching client from pool', pgErr);
     client.query('SELECT sector, sub_sector FROM sub_sector_to_sector_map', function(err, result) {
       done();
       if(err) return console.error('error running query', err);      
-      res.jsonp(result.rows);
+      res.send(result.rows);
     });
   });
 });  
