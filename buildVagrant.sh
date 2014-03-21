@@ -12,7 +12,7 @@ make
 make install
 
 # Setting up nginx
-cp /vagrant/gecko.conf /etc/nginx/sites-enabled/
+cp /vagrant/gekko.conf /etc/nginx/sites-enabled/
 sed -i 's/sendfile on;/sendfile off;/g' /etc/nginx/nginx.conf
 service nginx restart
 
