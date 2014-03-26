@@ -42,7 +42,7 @@ var conObj = {
 app.get('/dates', function (req, res) {
   pg.connect(conObj, function(pgErr, client, done) {
     if(pgErr) return console.error('error fetching client from pool', pgErr);
-    client.query('SELECT DISTINCT date_field FROM weights', function(err, result) {
+    client.query('SELECT DISTINCT date_field FROM weights ORDER BY date_field', function(err, result) {
       done();
       if(err) return console.error('error running query', err);
       async.map(result.rows, function (item, cb) {
@@ -59,9 +59,10 @@ app.get('/dates', function (req, res) {
 app.get('/weights/:date', function (req, res) {
   pg.connect(conObj, function(pgErr, client, done) {
     if(pgErr) return console.error('error fetching client from pool', pgErr);
-    client.query('SELECT date_field, sub_sector, weight FROM weights WHERE date_field=$1', [req.params.date], function(err, result) {
+    client.query('SELECT date_field, sub_sector, weight FROM weights WHERE date_field=$1', [new Date(req.params.date).toISOString().substring(0, 10)], function(err, result) {
       done();
       if(err) return console.error('error running query', err);
+      // res.send(result.rows);
       async.map(result.rows, function (item, cb) {
         item.date_field = item.date_field.toISOString().substring(0, 10);
         cb(null, item);
@@ -83,7 +84,23 @@ app.get('/map', function (req, res) {
       res.send(result.rows);
     });
   });
-});  
+});
+
+app.get('/series/:sector', function (req, res) {
+  pg.connect(conObj, function(pgErr, client, done) {
+    if(pgErr) return console.error('error fetching client from pool', pgErr);
+    client.query('SELECT date_field, value FROM sub_sector_series WHERE sub_sector=$1 ORDER BY date_field', [req.params.sector.replace('%20', ' ')], function(err, result) {
+      done();
+      if(err) return console.error('error running query', err);
+      async.map(result.rows, function (data, cb) {
+        cb(null, [Number(data.date_field), Number(data.value)]);
+      }, function (error, seriesData) {
+        if(err) return console.error('error mapping dates', error);
+        res.send(seriesData);
+      });
+    });
+  });
+});
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
