@@ -7,6 +7,7 @@ var express = require('express'),
     http = require('http'),
     pg = require('pg'),
     async = require('async'),
+    config = require('./config'),
     app = express();
 
 // all environments
@@ -29,18 +30,9 @@ if ('development' == app.get('env')) {
 }
 
 
-// You should change this data
-var conObj = {
-  user: 'user_name',
-  password: 'user_password',
-  database: 'db_name',
-  host: 'localhost'
-};
-
-
   // arr of dates
 app.get('/dates', function (req, res) {
-  pg.connect(conObj, function(pgErr, client, done) {
+  pg.connect(config.db, function(pgErr, client, done) {
     if(pgErr) return console.error('error fetching client from pool', pgErr);
     client.query('SELECT DISTINCT date_field FROM weights ORDER BY date_field', function(err, result) {
       done();
@@ -57,7 +49,7 @@ app.get('/dates', function (req, res) {
 
   // weights for each subsector on sepcific date
 app.get('/weights/:date', function (req, res) {
-  pg.connect(conObj, function(pgErr, client, done) {
+  pg.connect(config.db, function(pgErr, client, done) {
     if(pgErr) return console.error('error fetching client from pool', pgErr);
     client.query('SELECT date_field, sub_sector, weight FROM weights WHERE date_field=$1', [new Date(req.params.date).toISOString().substring(0, 10)], function(err, result) {
       done();
@@ -76,7 +68,7 @@ app.get('/weights/:date', function (req, res) {
 
 // map of subsector to sectors
 app.get('/map', function (req, res) {
-  pg.connect(conObj, function(pgErr, client, done) {
+  pg.connect(config.db, function(pgErr, client, done) {
     if(pgErr) return console.error('error fetching client from pool', pgErr);
     client.query('SELECT sector, sub_sector FROM sub_sector_to_sector_map', function(err, result) {
       done();
