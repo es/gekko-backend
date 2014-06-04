@@ -17,3 +17,6 @@ node_modules
 .vagrant/
 
 config.js
+db/db.sh
+db/db.sql
+db/user.sql
