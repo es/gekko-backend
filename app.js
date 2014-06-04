@@ -6,9 +6,22 @@
 var express = require('express'),
     http = require('http'),
     pg = require('pg'),
+    cors = require('cors'),
     async = require('async'),
     config = require('./config'),
     app = express();
+
+var corsOptions = {
+  origin: function(origin, callback){
+    async.filter(config.whitelist, function(item, cb) { cb(item === origin); }, 
+      function(results){
+        console.log('origin:', origin);
+        console.log('results:', results);
+        callback(null, (results !== 0));
+    });
+  },
+  allowedHeaders: 'Content-Type'
+};
 
 // all environments
 app.set('port', process.env.PORT || 3000);
@@ -16,12 +29,13 @@ app.use(express.logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(express.methodOverride());
-app.use(function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  next();
-});
+// app.use(function(req, res, next) {
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header('Access-Control-Allow-Methods', 'GET');
+  // res.header('Access-Control-Allow-Headers', 'Content-Type');
+//   next();
+// });
+// app.use();
 app.use(app.router);
 
 // development only
@@ -29,6 +43,7 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
+app.get('*', cors(corsOptions));
 
   // arr of dates
 app.get('/dates', function (req, res) {
@@ -79,7 +94,7 @@ app.get('/map', function (req, res) {
 });
 
 app.get('/series/:sector', function (req, res) {
-  pg.connect(conObj, function(pgErr, client, done) {
+  pg.connect(config.db, function(pgErr, client, done) {
     if(pgErr) return console.error('error fetching client from pool', pgErr);
     client.query('SELECT date_field, value FROM sub_sector_series WHERE sub_sector=$1 ORDER BY date_field', [req.params.sector.replace('%20', ' ')], function(err, result) {
       done();
