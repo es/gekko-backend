@@ -12,15 +12,7 @@ var express = require('express'),
     app = express();
 
 var corsOptions = {
-  origin: function(origin, callback){
-    async.filter(config.whitelist, function(item, cb) { cb(item === origin); }, 
-      function(results){
-        console.log('origin:', origin);
-        console.log('results:', results);
-        callback(null, (results !== 0));
-    });
-  },
-  allowedHeaders: 'Content-Type'
+  origin: 'http://gekko.stolarsky.com'
 };
 
 // all environments
@@ -29,21 +21,13 @@ app.use(express.logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(express.methodOverride());
-// app.use(function(req, res, next) {
-//   res.header('Access-Control-Allow-Origin', '*');
-//   res.header('Access-Control-Allow-Methods', 'GET');
-  // res.header('Access-Control-Allow-Headers', 'Content-Type');
-//   next();
-// });
-// app.use();
 app.use(app.router);
+app.use(cors(corsOptions));
 
 // development only
 if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
-
-app.get('*', cors(corsOptions));
 
   // arr of dates
 app.get('/dates', function (req, res) {
