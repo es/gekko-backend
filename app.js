@@ -71,7 +71,7 @@ app.get('/map', function (req, res) {
     if(pgErr) return console.error('error fetching client from pool', pgErr);
     client.query('SELECT sector, sub_sector FROM sub_sector_to_sector_map', function(err, result) {
       done();
-      if(err) return console.error('error running query', err);      
+      if(err) return console.error('error running query', err);
       res.send(result.rows);
     });
   });
